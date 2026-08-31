@@ -334,47 +334,32 @@
         <!-- EDIT SYARAT & KETENTUAN DI SINI kalau nanti mau ditambah -->
         <ul class="sk-list">
           <li><span class="sk-num">1</span><span>Belum pernah order di Soerabaja45.</span></li>
-          <li><span class="sk-num">2</span><span>Dibuktikan dengan mengisi form di bawah.</span></li>
+          <li><span class="sk-num">2</span><span>Dibuktikan dengan klaim otomatis via WhatsApp di bawah.</span></li>
         </ul>
         <!-- /EDIT SYARAT & KETENTUAN -->
 
       </div>
     </section>
 
-    <!-- CARA KLAIM + FORM (bawah) -->
+    <!-- CARA KLAIM (bawah) -->
     <section id="klaim">
       <div class="wrap reveal">
         <div class="section-head">
           <span class="sticker cyan pulse-badge">🎁 Klaim Sekarang</span>
           <h2>Cara Klaim Promonya</h2>
-          <p>Cukup isi formulir singkat di bawah ini, klaimnya langsung diproses otomatis.</p>
+          <p>Cukup klik tombol di bawah, WhatsApp konfirmasi otomatis kebuka.</p>
         </div>
 
         <div class="steps">
-          <div class="step-chip"><span class="n">1</span>Isi Data</div>
-          <div class="step-chip"><span class="n">2</span>Klaim Otomatis ke WA</div>
-          <div class="step-chip"><span class="n">3</span>Tunjukkan ke Kasir</div>
+          <div class="step-chip"><span class="n">1</span>Klik Klaim Sekarang</div>
+          <div class="step-chip"><span class="n">2</span>Tunjukkan ke Kasir</div>
         </div>
 
         <div class="form-card">
-          <form id="claimForm" novalidate>
-            <div class="field">
-              <label for="nama">Nama Lengkap</label>
-              <input type="text" id="nama" name="nama" placeholder="Nama kamu" autocomplete="name">
-              <div class="err-msg">Nama wajib diisi minimal 2 kata (nama depan &amp; belakang).</div>
-            </div>
-            <div class="field">
-              <label for="whatsapp">No. WhatsApp Aktif</label>
-              <input type="tel" id="whatsapp" name="whatsapp" placeholder="08xxxxxxxxxx" autocomplete="tel">
-              <div class="err-msg">Nomor WhatsApp belum valid.</div>
-            </div>
-
-            <!-- honeypot anti-spam, jangan dihapus -->
-            <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off">
-
-            <button type="submit" class="submit-btn pulse-badge" id="submitBtn">Klaim Sekarang</button>
-            <p class="form-foot-note">Data kamu hanya dipakai untuk verifikasi klaim promo.</p>
-          </form>
+          <div id="claimStart">
+            <button type="button" class="submit-btn pulse-badge" id="submitBtn">Klaim Sekarang</button>
+            <p class="form-foot-note">Klik tombol di atas, chat WhatsApp konfirmasi otomatis kebuka.</p>
+          </div>
 
           <div class="claim-success" id="claimSuccess" hidden>
             <div class="check">
@@ -512,85 +497,42 @@
     return 'S45CUT-' + code;
   }
 
-  /* ---------- Validation helpers ---------- */
-  function normalizeWA(v){
-    let d = v.replace(/\D/g,'');
-    if(d.startsWith('0')) d = '62' + d.slice(1);
-    else if(!d.startsWith('62')) d = '62' + d;
-    return d;
-  }
-  function setError(field, isError){
-    field.parentElement.classList.toggle('error', isError);
-  }
-
-  const form = document.getElementById('claimForm');
+  const claimStart = document.getElementById('claimStart');
   const submitBtn = document.getElementById('submitBtn');
   const claimSuccess = document.getElementById('claimSuccess');
   const waFallbackBtn = document.getElementById('waFallbackBtn');
 
-  function isNamaValid(v){
-    // minimal 2 kata (nama depan & belakang), tiap kata minimal 2 huruf
-    const words = v.trim().split(/\s+/).filter(w => w.length >= 2);
-    return words.length >= 2;
-  }
+  submitBtn.addEventListener('click', function(){
+    if(submitBtn.disabled) return;
 
-  form.addEventListener('submit', function(e){
-    e.preventDefault();
-
-    const namaEl = document.getElementById('nama');
-    const waEl = document.getElementById('whatsapp');
-    const honeypot = form.querySelector('input[name="website"]').value;
-
-    const nama = namaEl.value.trim();
-    const waRaw = waEl.value.trim();
-    const waNorm = normalizeWA(waRaw);
-
-    let valid = true;
-    setError(namaEl, false); setError(waEl, false);
-
-    if(!isNamaValid(nama)){ setError(namaEl, true); valid = false; }
-    if(waNorm.length < 10 || waNorm.length > 15){ setError(waEl, true); valid = false; }
-
-    if(!valid) return;
-
-    // Bot sederhana (honeypot) diam-diam diabaikan, tidak menampilkan pesan error ke user
-    const isBot = honeypot.length > 0;
-
-    const kode = generateClaimCode(); // tetap dibuat & disimpan di sheet untuk referensi staff, tidak ditampilkan ke customer
-    const pesanKonfirmasi = 'Halo Minja, Saya ' + nama + ' sudah klaim promo "Gratis Potong Stiker Suka2". (Kode: ' + kode + ')';
+    const kode = generateClaimCode(); // dibuat & disimpan di sheet untuk referensi staff, tidak ditampilkan ke customer
+    const pesanKonfirmasi = 'Halo Minja, saya mau klaim promo "Gratis Potong Stiker Suka2". (Kode: ' + kode + ')';
     const waUrl = "https://wa.me/" + CONFIG.WA_ADMIN + "?text=" + encodeURIComponent(pesanKonfirmasi);
     waFallbackBtn.href = waUrl; // tombol cadangan kalau auto-open gagal
 
     // Buka WA OTOMATIS begitu tombol diklik — harus dipanggil sinkron di sini (bukan di
     // dalam .then() setelah fetch) supaya tidak diblokir popup blocker browser.
-    if(!isBot){
-      window.open(waUrl, '_blank', 'noopener');
-    }
+    window.open(waUrl, '_blank', 'noopener');
 
     submitBtn.disabled = true;
     submitBtn.textContent = 'Memproses...';
 
     const payload = {
-      nama: nama,
-      whatsapp: waNorm,
       kode: kode,
       timestamp: new Date().toISOString()
     };
 
     function showSuccess(){
-      // Tetap di 1 sesi/halaman yang sama: form diganti pesan sukses inline
-      form.hidden = true;
+      // Tetap di 1 sesi/halaman yang sama: tombol diganti pesan sukses inline
+      claimStart.hidden = true;
       claimSuccess.hidden = false;
       claimSuccess.classList.add('show');
-
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Klaim Sekarang';
     }
 
-    if(isBot || CONFIG.APPS_SCRIPT_URL.indexOf('GANTI_DENGAN_URL') === 0){
-      // URL backend belum dipasang (atau submit dianggap bot) — tetap tampilkan pesan sukses
-      // supaya tampilan halaman tetap bisa dicoba, tapi data TIDAK terkirim ke spreadsheet.
-      if(!isBot){ console.warn('APPS_SCRIPT_URL belum diisi — data tidak dikirim ke Google Sheets.'); }
+    if(CONFIG.APPS_SCRIPT_URL.indexOf('GANTI_DENGAN_URL') === 0){
+      // URL backend belum dipasang — tetap tampilkan pesan sukses supaya tampilan halaman
+      // tetap bisa dicoba, tapi data TIDAK terkirim ke spreadsheet.
+      console.warn('APPS_SCRIPT_URL belum diisi — data tidak dikirim ke Google Sheets.');
       setTimeout(showSuccess, 400);
       return;
     }
