@@ -398,7 +398,7 @@
   const footerWaBtn = document.getElementById('footerWaBtn');
   if(footerWaBtn){
     const pesanTanya = 'Halo Minja, saya mau tanya tentang promo "Gratis Potong Stiker Suka2"';
-    footerWaBtn.href = "https://wa.me/" + CONFIG.WA_ADMIN + "text=" + encodeURIComponent(pesanTanya);
+    footerWaBtn.href = "https://wa.me/" + CONFIG.WA_ADMIN + "?text=" + encodeURIComponent(pesanTanya);
   }
 
   /* ---------- Confetti meriah saat pertama buka halaman ---------- */
@@ -507,7 +507,7 @@
 
     const kode = generateClaimCode(); // dibuat & disimpan di sheet untuk referensi staff, tidak ditampilkan ke customer
     const pesanKonfirmasi = 'Halo Minja, saya mau klaim promo "Gratis Potong Stiker Suka2". (Kode: ' + kode + ')';
-    const waUrl = "https://wa.me/" + CONFIG.WA_ADMIN + "text=" + encodeURIComponent(pesanKonfirmasi);
+    const waUrl = "https://wa.me/" + CONFIG.WA_ADMIN + "?text=" + encodeURIComponent(pesanKonfirmasi);
     waFallbackBtn.href = waUrl; // tombol cadangan kalau auto-open gagal
 
     // Buka WA OTOMATIS begitu tombol diklik — harus dipanggil sinkron di sini (bukan di
