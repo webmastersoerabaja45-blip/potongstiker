@@ -566,8 +566,16 @@ src="https://www.facebook.com/tr?id=1227320082909094&ev=PageView&noscript=1"
       showSuccess();
     });
   });
-
 })();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('a[href*="wa.me"], a[href*="whatsapp"]').forEach(function(link){
+    link.addEventListener('click', function(){
+      fbq('track', 'Lead');
+    });
+  });
+});
 </script>
 </body>
 </html>
